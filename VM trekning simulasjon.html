@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VM 2026 - Playoff & Trekning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-panel: #1e293b;
+            --accent: #3b82f6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+            --norway-red: #dc2626;
+            --win-bg: rgba(59, 130, 246, 0.15);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            padding-bottom: 100px;
+            font-size: 14px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 25px;
+            text-align: center;
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 2.5rem;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Icons */
+        .header-icon {
+            font-size: 2.5rem;
+            -webkit-text-fill-color: initial; /* Beholder fargen på emojien */
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+            animation: float 3s ease-in-out infinite;
+            cursor: default;
+        }
+
+        .header-icon.globe { animation-delay: 1.5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .subtitle {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        /* --- TITLES --- */
+        .section-title {
+            text-align: center;
+            color: #fff;
+            margin: 30px 0 15px 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .section-title.first { margin-top: 0; }
+
+        /* --- UEFA GRID --- */
+        .uefa-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 1200px) { .uefa-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 700px) { .uefa-grid { grid-template-columns: 1fr; } }
+
+        .path-card {
+            background: var(--bg-panel);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .path-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #fff;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .bracket-stage { margin-bottom: 15px; }
+        .bracket-stage:last-child { margin-bottom: 0; }
+
+        .stage-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- BUTTONS --- */
+        .matchup {
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-bottom: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .team-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 6px 10px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-main);
+            cursor: pointer;
+            text-align: left;
+            position: relative;
+            font-size: 0.85rem;
+            height: 34px;
+        }
+
+        .team-btn:last-child { border-bottom: none; }
+        .team-btn:hover { background: rgba(255,255,255,0.05); }
+
+        .team-btn.selected { background: var(--win-bg); color: #fff; }
+        .team-btn.eliminated { opacity: 0.3; text-decoration: line-through; }
+
+        .team-btn.qualified {
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.25));
+            border-left: 3px solid var(--success);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .wc-badge {
+            background: var(--success);
+            color: #000;
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 1px 5px;
+            border-radius: 3px;
+            margin-left: auto;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        .team-btn.placeholder { color: var(--text-muted); font-style: italic; cursor: default; }
+        .flag { width: 18px; height: 13px; border-radius: 2px; margin-right: 8px; object-fit: cover; flex-shrink: 0; }
+        .t-name { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .t-rank { font-size: 0.7rem; color: var(--text-muted); margin-right: 5px; }
+
+        .ha-badge { font-size: 0.6rem; padding: 1px 4px; border-radius: 3px; margin-left: 5px; text-transform: uppercase; font-weight: bold; flex-shrink: 0; }
+        .badge-home { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .badge-away { background: rgba(244, 63, 94, 0.2); color: #fb7185; }
+
+        /* --- IC SECTION --- */
+        .ic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; justify-content: center; max-width: 800px; margin: 0 auto; }
+
+        /* --- CONTROLS --- */
+        .control-panel { text-align: center; padding: 20px; position: sticky; bottom: 20px; z-index: 100; pointer-events: none; }
+        #drawBtn {
+            pointer-events: auto;
+            background: var(--bg-panel);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: not-allowed;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+            transition: all 0.3s;
+        }
+        #drawBtn.active { background: var(--accent); color: white; border-color: var(--accent); cursor: pointer; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+
+        /* --- RESULT GRID --- */
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 50px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
+        }
+        .groups-grid.visible { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 1400px) { .groups-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 1000px) { .groups-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 600px) { .groups-grid { grid-template-columns: 1fr; } }
+
+        .group-card { background: var(--bg-panel); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+        .group-header {
+            background: #0f172a;
+            padding: 10px 15px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .group-title { font-weight: 800; color: #fff; font-size: 1.1rem; }
+        .group-title span { color: var(--accent); }
+        
+        .team-item { display: flex; align-items: center; padding: 8px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+        
+        /* NORWAY HIGHLIGHT STYLE */
+        .team-item.norway { 
+            background: linear-gradient(90deg, rgba(220, 38, 38, 0.25), rgba(220, 38, 38, 0.05));
+            border-left: 4px solid var(--norway-red); 
+            box-shadow: inset 0 0 15px rgba(220, 38, 38, 0.1);
+        }
+        .team-item.norway span {
+            color: #fca5a5;
+            font-weight: 800 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container" style="padding: 0;">
+        <h1>
+            <span class="header-icon">⚽</span>
+            VM 2026
+            <span class="header-icon globe">🌍</span>
+        </h1>
+        <div class="subtitle">Playoff & Trekning</div>
+    </div>
+</header>
+
+<div class="container">
+    
+    <!-- PLAYOFF UI -->
+    <div id="playoff-ui">
+        
+        <div class="section-title first">Europeisk Play-off</div>
+
+        <!-- UEFA GRID -->
+        <div class="uefa-grid">
+            <div class="path-card">
+                <div class="path-title">UEFA Path A</div>
+                <div class="bracket-stage"><div class="stage-label">Semifinaler</div><div class="matchup" id="match-ua-sf1"></div><div class="matchup" id="match-ua-sf2"></div></div>
+                <div class="bracket-stage"><div class="stage-label">Finale (SF2 Hjemme)</div><div class="matchup" id="match-ua-final"></div></div>
+            </div>
+            <div class="path-card">
+                <div class="path-title">UEFA Path B</div>
+                <div class="bracket-stage"><div class="stage-label">Semifinaler</div><div class="matchup" id="match-ub-sf1"></div><div class="matchup" id="match-ub-sf2"></div></div>
+                <div class="bracket-stage"><div class="stage-label">Finale (SF1 Hjemme)</div><div class="matchup" id="match-ub-final"></div></div>
+            </div>
+            <div class="path-card">
+                <div class="path-title">UEFA Path C</div>
+                <div class="bracket-stage"><div class="stage-label">Semifinaler</div><div class="matchup" id="match-uc-sf1"></div><div class="matchup" id="match-uc-sf2"></div></div>
+                <div class="bracket-stage"><div class="stage-label">Finale (SF2 Hjemme)</div><div class="matchup" id="match-uc-final"></div></div>
+            </div>
+            <div class="path-card">
+                <div class="path-title">UEFA Path D</div>
+                <div class="bracket-stage"><div class="stage-label">Semifinaler</div><div class="matchup" id="match-ud-sf1"></div><div class="matchup" id="match-ud-sf2"></div></div>
+                <div class="bracket-stage"><div class="stage-label">Finale (SF1 Hjemme)</div><div class="matchup" id="match-ud-final"></div></div>
+            </div>
+        </div>
+
+        <!-- INTERCONTINENTAL -->
+        <div class="section-title">Interkontinental Play-off (spilles i Mexico)</div>
+        <div class="ic-grid">
+            <div class="path-card">
+                <div class="path-title">Bracket 1 (DR Kongo seedet)</div>
+                <div class="bracket-stage"><div class="stage-label">Semifinale</div><div class="matchup" id="match-ic1-sf"></div></div>
+                <div class="bracket-stage"><div class="stage-label">Finale</div><div class="matchup" id="match-ic1-final"></div></div>
+            </div>
+            <div class="path-card">
+                <div class="path-title">Bracket 2 (Irak seedet)</div>
+                <div class="bracket-stage"><div class="stage-label">Semifinale</div><div class="matchup" id="match-ic2-sf"></div></div>
+                <div class="bracket-stage"><div class="stage-label">Finale</div><div class="matchup" id="match-ic2-final"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="control-panel">
+        <button id="drawBtn" disabled onclick="runDraw()">Utfør Trekning</button>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="results" class="groups-grid"></div>
+</div>
+
+<script>
+// --------------------------------------------------------
+// DATA
+// --------------------------------------------------------
+const TEAM_DB = {
+    "United States": {no: "USA", code: "us", points: 1681}, "Mexico": {no: "Mexico", code: "mx", points: 1675},
+    "Canada": {no: "Canada", code: "ca", points: 1559}, "Spain": {no: "Spania", code: "es", points: 1877},
+    "Argentina": {no: "Argentina", code: "ar", points: 1873}, "France": {no: "Frankrike", code: "fr", points: 1870},
+    "England": {no: "England", code: "gb-eng", points: 1834}, "Brazil": {no: "Brasil", code: "br", points: 1760},
+    "Portugal": {no: "Portugal", code: "pt", points: 1760}, "Netherlands": {no: "Nederland", code: "nl", points: 1756},
+    "Belgium": {no: "Belgia", code: "be", points: 1730}, "Germany": {no: "Tyskland", code: "de", points: 1724},
+    "Croatia": {no: "Kroatia", code: "hr", points: 1716}, "Morocco": {no: "Marokko", code: "ma", points: 1713},
+    "Colombia": {no: "Colombia", code: "co", points: 1701}, "Uruguay": {no: "Uruguay", code: "uy", points: 1672},
+    "Switzerland": {no: "Sveits", code: "ch", points: 1654}, "Japan": {no: "Japan", code: "jp", points: 1650},
+    "Senegal": {no: "Senegal", code: "sn", points: 1648}, "Iran": {no: "Iran", code: "ir", points: 1617},
+    "South Korea": {no: "Sør-Korea", code: "kr", points: 1599}, "Ecuador": {no: "Ecuador", code: "ec", points: 1591},
+    "Austria": {no: "Østerrike", code: "at", points: 1585}, "Australia": {no: "Australia", code: "au", points: 1574},
+    "Norway": {no: "Norge", code: "no", points: 1553}, "Panama": {no: "Panama", code: "pa", points: 1540},
+    "Egypt": {no: "Egypt", code: "eg", points: 1520}, "Algeria": {no: "Algerie", code: "dz", points: 1516},
+    "Scotland": {no: "Skottland", code: "gb-sct", points: 1506}, "Paraguay": {no: "Paraguay", code: "py", points: 1501},
+    "Tunisia": {no: "Tunisia", code: "tn", points: 1497}, "Ivory Coast": {no: "Elfenbenskysten", code: "ci", points: 1489},
+    "Uzbekistan": {no: "Usbekistan", code: "uz", points: 1462}, "Qatar": {no: "Qatar", code: "qa", points: 1461},
+    "Saudi Arabia": {no: "Saudi-Arabia", code: "sa", points: 1428}, "South Africa": {no: "Sør-Afrika", code: "za", points: 1426},
+    "Jordan": {no: "Jordan", code: "jo", points: 1377}, "Cape Verde": {no: "Kapp Verde", code: "cv", points: 1367},
+    "Ghana": {no: "Ghana", code: "gh", points: 1351}, "Curaçao": {no: "Curaçao", code: "cw", points: 1302},
+    "Haiti": {no: "Haiti", code: "ht", points: 1294}, "New Zealand": {no: "New Zealand", code: "nz", points: 1279},
+    // Playoff
+    "Italy": {no: "Italia", code: "it", points: 1702}, "Northern Ireland": {no: "Nord-Irland", code: "gb-nir", points: 1430},
+    "Wales": {no: "Wales", code: "gb-wls", points: 1525}, "Bosnia and Herzegovina": {no: "Bosnia-Herc.", code: "ba", points: 1450},
+    "Ukraine": {no: "Ukraina", code: "ua", points: 1560}, "Sweden": {no: "Sverige", code: "se", points: 1530},
+    "Poland": {no: "Polen", code: "pl", points: 1532}, "Albania": {no: "Albania", code: "al", points: 1435},
+    "Turkey": {no: "Tyrkia", code: "tr", points: 1555}, "Romania": {no: "Romania", code: "ro", points: 1503},
+    "Slovakia": {no: "Slovakia", code: "sk", points: 1490}, "Kosovo": {no: "Kosovo", code: "xk", points: 1308},
+    "Denmark": {no: "Danmark", code: "dk", points: 1616}, "North Macedonia": {no: "N. Makedonia", code: "mk", points: 1430},
+    "Czech Republic": {no: "Tsjekkia", code: "cz", points: 1505}, "Republic of Ireland": {no: "Irland", code: "ie", points: 1440},
+    "New Caledonia": {no: "Ny-Caledonia", code: "nc", points: 1100}, "Jamaica": {no: "Jamaica", code: "jm", points: 1450},
+    "DR Congo": {no: "DR Kongo", code: "cd", points: 1442}, "Bolivia": {no: "Bolivia", code: "bo", points: 1445}, "Suriname": {no: "Surinam", code: "sr", points: 1250}, "Iraq": {no: "Irak", code: "iq", points: 1438}
+};
+
+let TEAM_RANKS = {};
+function calcRanks() {
+    const sorted = Object.keys(TEAM_DB).sort((a,b) => TEAM_DB[b].points - TEAM_DB[a].points);
+    sorted.forEach((t, i) => TEAM_RANKS[t] = i + 1);
+}
+calcRanks();
+
+const POT1 = ["United States", "Mexico", "Canada", "Spain", "Argentina", "France", "England", "Brazil", "Portugal", "Netherlands", "Belgium", "Germany"];
+const POT2 = ["Croatia", "Morocco", "Colombia", "Uruguay", "Switzerland", "Japan", "Senegal", "Iran", "South Korea", "Ecuador", "Austria", "Australia"];
+const POT3 = ["Norway", "Panama", "Egypt", "Algeria", "Scotland", "Paraguay", "Tunisia", "Ivory Coast", "Uzbekistan", "Qatar", "Saudi Arabia", "South Africa"];
+const POT4_BASE = ["Jordan", "Cape Verde", "Ghana", "Curaçao", "Haiti", "New Zealand"];
+
+const CONFED = {
+    "United States": "CONCACAF", "Mexico": "CONCACAF", "Canada": "CONCACAF", "Spain": "UEFA", "Argentina": "CONMEBOL", "France": "UEFA", "England": "UEFA", "Brazil": "CONMEBOL", "Portugal": "UEFA", "Netherlands": "UEFA", "Belgium": "UEFA", "Germany": "UEFA",
+    "Croatia": "UEFA", "Morocco": "CAF", "Colombia": "CONMEBOL", "Uruguay": "CONMEBOL", "Switzerland": "UEFA", "Japan": "AFC", "Senegal": "CAF", "Iran": "AFC", "South Korea": "AFC", "Ecuador": "CONMEBOL", "Austria": "UEFA", "Australia": "AFC",
+    "Norway": "UEFA", "Panama": "CONCACAF", "Egypt": "CAF", "Algeria": "CAF", "Scotland": "UEFA", "Paraguay": "CONMEBOL", "Tunisia": "CAF", "Ivory Coast": "CAF", "Uzbekistan": "AFC", "Qatar": "AFC", "Saudi Arabia": "AFC", "South Africa": "CAF",
+    "Jordan": "AFC", "Cape Verde": "CAF", "Ghana": "CAF", "Curaçao": "CONCACAF", "Haiti": "CONCACAF", "New Zealand": "OFC",
+    "Italy": "UEFA", "Northern Ireland": "UEFA", "Wales": "UEFA", "Bosnia and Herzegovina": "UEFA",
+    "Ukraine": "UEFA", "Sweden": "UEFA", "Poland": "UEFA", "Albania": "UEFA",
+    "Turkey": "UEFA", "Romania": "UEFA", "Slovakia": "UEFA", "Kosovo": "UEFA",
+    "Denmark": "UEFA", "North Macedonia": "UEFA", "Czech Republic": "UEFA", "Republic of Ireland": "UEFA",
+    "New Caledonia": "OFC", "Jamaica": "CONCACAF", "DR Congo": "CAF", "Bolivia": "CONMEBOL", "Suriname": "CONCACAF", "Iraq": "AFC"
+};
+const HOST_GROUPS = {"Mexico": "A", "Canada": "B", "United States": "D"};
+const GROUP_NAMES = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+
+const STATE = { ua: null, ub: null, uc: null, ud: null, ic1: null, ic2: null };
+const FINAL_MATCHUPS = {
+    'match-ua-final': [null, null], 'match-ub-final': [null, null],
+    'match-uc-final': [null, null], 'match-ud-final': [null, null],
+    'match-ic1-final': ["DR Congo", null], 'match-ic2-final': ["Iraq", null]
+};
+
+function renderMatch(id, team1, team2, nextTargetId, nextSlotIndex, isNeutral = false) {
+    const el = document.getElementById(id);
+    el.innerHTML = '';
+    [team1, team2].forEach((team, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'team-btn';
+        if(!team) {
+            btn.classList.add('placeholder'); btn.innerHTML = '<span>Venter...</span>';
+        } else {
+            const data = TEAM_DB[team];
+            const isFinal = !nextTargetId;
+            btn.onclick = () => selectWinner(id, team, team1, team2, nextTargetId, nextSlotIndex, isNeutral);
+            
+            let badgeHTML = '';
+            if(!isNeutral) {
+                 if(index === 0) badgeHTML = '<span class="ha-badge badge-home">H</span>';
+                 else badgeHTML = '<span class="ha-badge badge-away">B</span>';
+            }
+            btn.innerHTML = `<img src="https://flagcdn.com/${data.code}.svg" class="flag"><span class="t-name">${data.no}</span><span class="t-rank">#${TEAM_RANKS[team]}</span>${badgeHTML}`;
+        }
+        el.appendChild(btn);
+    });
+}
+
+function selectWinner(matchId, winner, teamA, teamB, nextTargetId, nextSlotIndex, isNeutral) {
+    const el = document.getElementById(matchId);
+    const btns = el.getElementsByTagName('button');
+    btns[0].classList.remove('selected', 'eliminated', 'qualified');
+    btns[1].classList.remove('selected', 'eliminated', 'qualified');
+    Array.from(btns).forEach(b => { const e=b.querySelector('.wc-badge'); if(e)e.remove(); });
+
+    const winnerIndex = (winner === teamA) ? 0 : 1;
+    const loserIndex = (winner === teamA) ? 1 : 0;
+    btns[winnerIndex].classList.add('selected');
+    btns[loserIndex].classList.add('eliminated');
+
+    if(nextTargetId) {
+        updateFinal(nextTargetId, nextSlotIndex, winner, isNeutral);
+    } else {
+        btns[winnerIndex].classList.add('qualified');
+        const badge = document.createElement('span');
+        badge.className = 'wc-badge';
+        badge.innerText = 'VM KLAR';
+        btns[winnerIndex].appendChild(badge);
+        const path = matchId.split('-')[1];
+        STATE[path] = winner;
+        checkAllReady();
+    }
+}
+
+function updateFinal(matchId, slotIndex, team, isNeutral) {
+    FINAL_MATCHUPS[matchId][slotIndex] = team;
+    const current = FINAL_MATCHUPS[matchId];
+    renderMatch(matchId, current[0], current[1], null, null, isNeutral);
+    const path = matchId.split('-')[1];
+    STATE[path] = null;
+    checkAllReady();
+}
+
+function checkAllReady() {
+    const allSet = STATE.ua && STATE.ub && STATE.uc && STATE.ud && STATE.ic1 && STATE.ic2;
+    const btn = document.getElementById('drawBtn');
+    btn.disabled = !allSet;
+    if(allSet) btn.classList.add('active'); else btn.classList.remove('active');
+}
+
+function initPlayoff() {
+    renderMatch('match-ua-sf1', "Italy", "Northern Ireland", 'match-ua-final', 1, false); 
+    renderMatch('match-ua-sf2', "Wales", "Bosnia and Herzegovina", 'match-ua-final', 0, false);
+    renderMatch('match-ua-final', null, null, null, null, false);
+
+    renderMatch('match-ub-sf1', "Ukraine", "Sweden", 'match-ub-final', 0, false);
+    renderMatch('match-ub-sf2', "Poland", "Albania", 'match-ub-final', 1, false);
+    renderMatch('match-ub-final', null, null, null, null, false);
+
+    renderMatch('match-uc-sf1', "Turkey", "Romania", 'match-uc-final', 1, false);
+    renderMatch('match-uc-sf2', "Slovakia", "Kosovo", 'match-uc-final', 0, false);
+    renderMatch('match-uc-final', null, null, null, null, false);
+
+    renderMatch('match-ud-sf1', "Denmark", "North Macedonia", 'match-ud-final', 0, false);
+    renderMatch('match-ud-sf2', "Czech Republic", "Republic of Ireland", 'match-ud-final', 1, false);
+    renderMatch('match-ud-final', null, null, null, null, false);
+
+    renderMatch('match-ic1-sf', "New Caledonia", "Jamaica", 'match-ic1-final', 1, true);
+    renderMatch('match-ic1-final', "DR Congo", null, null, null, true);
+
+    renderMatch('match-ic2-sf', "Bolivia", "Suriname", 'match-ic2-final', 1, true);
+    renderMatch('match-ic2-final', "Iraq", null, null, null, true);
+}
+
+function runDraw() {
+    if(document.getElementById('drawBtn').disabled) return;
+    const winners = [STATE.ua, STATE.ub, STATE.uc, STATE.ud, STATE.ic1, STATE.ic2];
+    const fullPot4 = [...POT4_BASE, ...winners];
+    const pots = [POT1.filter(t => !HOST_GROUPS[t]), [...POT2], [...POT3], [...fullPot4]];
+    pots.forEach(p => shuffle(p));
+
+    let groups = null;
+    for(let i=0; i<1000; i++) {
+        groups = initGroups();
+        if(assignRecursive(pots, 0, 0, groups)) break;
+        groups = null;
+    }
+    if(groups) displayGroups(groups);
+    else alert("Kunne ikke finne gyldig trekning. Prøv igjen.");
+}
+
+function initGroups() {
+    const g = {};
+    GROUP_NAMES.forEach(name => { g[name] = { name, teams: [], confeds: {}, pots: {0:0,1:0,2:0,3:0} }; });
+    for(const [t, grp] of Object.entries(HOST_GROUPS)) placeTeam(g[grp], t, 0);
+    return g;
+}
+function placeTeam(g, t, pIdx) { g.teams.push(t); g.confeds[CONFED[t]] = (g.confeds[CONFED[t]]||0)+1; g.pots[pIdx]++; }
+function removeTeam(g, t, pIdx) { g.teams.splice(g.teams.indexOf(t), 1); g.confeds[CONFED[t]]--; g.pots[pIdx]--; }
+function canPlace(g, t, pIdx) {
+    if(g.teams.length >= 4) return false;
+    if(g.pots[pIdx] >= 1) return false;
+    const c = CONFED[t];
+    if(c === "UEFA") return (g.confeds[c]||0) < 2;
+    return (g.confeds[c]||0) < 1;
+}
+function assignRecursive(pots, pIdx, tIdx, groups) {
+    if(pIdx === pots.length) return true;
+    if(tIdx === pots[pIdx].length) return assignRecursive(pots, pIdx+1, 0, groups);
+    const team = pots[pIdx][tIdx];
+    const keys = [...GROUP_NAMES];
+    shuffle(keys);
+    for(const k of keys) {
+        if(canPlace(groups[k], team, pIdx)) {
+            placeTeam(groups[k], team, pIdx);
+            if(assignRecursive(pots, pIdx, tIdx+1, groups)) return true;
+            removeTeam(groups[k], team, pIdx);
+        }
+    }
+    return false;
+}
+function shuffle(a) { for(let i=a.length-1; i>0; i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } }
+
+function displayGroups(groups) {
+    const c = document.getElementById('results');
+    c.innerHTML = '';
+    c.classList.add('visible');
+    setTimeout(() => { c.scrollIntoView({behavior:'smooth', block: 'start'}); }, 100);
+
+    GROUP_NAMES.forEach(name => {
+        const g = groups[name];
+        const sorted = g.teams.sort((a,b) => getPot(a) - getPot(b));
+        const card = document.createElement('div');
+        card.className = 'group-card';
+        let html = `<div class="group-header"><div class="group-title">GRUPPE <span>${name}</span></div></div>`;
+        sorted.forEach(t => {
+            const d = TEAM_DB[t];
+            const rank = TEAM_RANKS[t];
+            const isNor = t==="Norway";
+            html += `<div class="team-item ${isNor?'norway':''}"><img src="https://flagcdn.com/${d.code}.svg" style="width:18px; margin-right:8px;"><span style="font-weight:600; ${isNor?'color:#fca5a5':''}">${d.no}</span><span class="wc-badge" style="background:none; color:var(--accent); box-shadow:none; font-size:0.75rem;">#${rank}</span></div>`;
+        });
+        card.innerHTML = html;
+        c.appendChild(card);
+    });
+}
+function getPot(t) {
+    if(POT1.includes(t)) return 1; if(POT2.includes(t)) return 2; if(POT3.includes(t)) return 3; return 4;
+}
+
+initPlayoff();
+</script>
+</body>
+</html>
